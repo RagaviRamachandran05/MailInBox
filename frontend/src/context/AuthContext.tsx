@@ -58,9 +58,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const loginWithGoogle = () => {
-    const backendUrl = import.meta.env.VITE_API_URL 
-      ? (import.meta.env.VITE_API_URL.endsWith('/api') ? import.meta.env.VITE_API_URL.replace(/\/api$/, '') : import.meta.env.VITE_API_URL)
-      : '';
+    const envUrl = import.meta.env.VITE_API_URL;
+    let backendUrl = '';
+    if (envUrl) {
+      backendUrl = envUrl.endsWith('/api') ? envUrl.replace(/\/api$/, '') : envUrl;
+    } else if (import.meta.env.PROD) {
+      backendUrl = 'https://mailinbox.onrender.com';
+    }
     window.location.href = `${backendUrl}/api/auth/google`;
   };
 
