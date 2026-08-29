@@ -1,4 +1,5 @@
 import express from 'express';
+import path from 'path';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
@@ -52,6 +53,20 @@ app.use('/admin/queues', bullBoardRouter);
 
 // Mount API Routes
 app.use('/api', apiRouter);
+
+// Serve frontend build in production
+const frontendDist = path.join(__dirname, '../../frontend/dist');
+app.use(express.static(frontendDist));
+
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/admin')) {
+    return next();
+  }
+  const indexPath = path.join(frontendDist, 'index.html');
+  res.sendFile(indexPath, (err) => {
+    if (err) next();
+  });
+});
 
 // Centralized error handling
 app.use(errorHandler);

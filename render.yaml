@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: mailinbox
+    env: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: GOOGLE_CLIENT_ID
+        value: 737231855789-39blujvflqhnd8jmjedb9st7jobil51n.apps.googleusercontent.com
+      - key: SLACK_WEBHOOK_URL
+        value: https://hooks.slack.com/services/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
+      - key: WORKER_CONCURRENCY
+        value: 5
+      - key: MIN_EMAIL_DELAY_MS
+        value: 2000
+      - key: MAX_EMAILS_PER_HOUR
+        value: 200
