@@ -10,6 +10,7 @@ router.use(requireAuth);
 
 router.get('/connect', SlackController.connect);
 router.get('/status', SlackController.getStatus);
+router.post('/webhook', SlackController.saveWebhook);
 router.post('/test', SlackController.test);
 router.post('/disconnect', SlackController.disconnect);
 

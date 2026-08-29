@@ -82,6 +82,24 @@ export class SlackController {
   }
 
   /**
+   * POST /api/slack/webhook
+   */
+  public static async saveWebhook(req: AuthenticatedRequest, res: Response) {
+    if (!req.user) return res.status(401).json({ success: false });
+    const { webhookUrl } = req.body;
+
+    if (!webhookUrl || typeof webhookUrl !== 'string') {
+      return res.status(400).json({ success: false, message: 'Valid webhookUrl string is required.' });
+    }
+
+    await SlackService.saveWebhook(req.user.id, webhookUrl);
+    return res.json({
+      success: true,
+      message: 'Slack Webhook connected successfully.',
+    });
+  }
+
+  /**
    * POST /api/slack/disconnect
    */
   public static async disconnect(req: AuthenticatedRequest, res: Response) {

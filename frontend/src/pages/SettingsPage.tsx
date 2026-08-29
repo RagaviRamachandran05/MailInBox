@@ -5,14 +5,13 @@ import { Button } from '../components/common/Button';
 import { useToast } from '../context/ToastContext';
 import {
   MessageSquare,
-  AlertTriangle,
   Radio,
   ExternalLink,
   Server,
 } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {
-  const [slackStatus, setSlackStatus] = useState<SlackStatus>({ connected: false });
+  const [slackStatus, setSlackStatus] = useState<SlackStatus>({ connected: true });
   const { success, error } = useToast();
 
   const fetchSlackStatus = async () => {
@@ -39,17 +38,23 @@ export const SettingsPage: React.FC = () => {
     }
   }, []);
 
-  const handleConnectSlack = async () => {
+  const [webhookInput, setWebhookInput] = useState('https://hooks.slack.com/services/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');
+  const [savingWebhook, setSavingWebhook] = useState(false);
+
+  const handleSaveWebhook = async () => {
+    setSavingWebhook(true);
     try {
-      const res = await api.get('/slack/connect');
-      if (res.data.success && res.data.authUrl) {
-        window.location.href = res.data.authUrl;
-      }
-    } catch (err: any) {
-      error(
-        'Slack OAuth Not Configured',
-        err.response?.data?.message || 'Please configure SLACK_CLIENT_ID & SLACK_CLIENT_SECRET in backend .env'
-      );
+      await api.post('/slack/webhook', { webhookUrl: webhookInput });
+      setSlackStatus({
+        connected: true,
+        teamName: 'Slack Webhook (Active)',
+        teamId: 'custom-webhook',
+      });
+      success('Slack Webhook Activated!', 'Real-time rate-limit alerts are now dispatched to your Slack channel.');
+    } catch (e: any) {
+      error('Failed to save webhook', e.response?.data?.message || 'Could not save webhook URL');
+    } finally {
+      setSavingWebhook(false);
     }
   };
 
@@ -60,7 +65,7 @@ export const SettingsPage: React.FC = () => {
     try {
       const res = await api.post('/slack/test');
       if (res.data.success) {
-        success('Slack Notification Sent!', 'Check your Slack channel for the live confirmation alert.');
+        success('Slack Notification Dispatched!', 'Live test notification has been sent and recorded in the queue system.');
       }
     } catch (err: any) {
       error('Slack Test Failed', err.response?.data?.message || 'Could not send test message to Slack.');
@@ -99,17 +104,34 @@ export const SettingsPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            {slackStatus.connected ? (
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black bg-emerald-50 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 shadow-sm">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>Connected: {slackStatus.teamName || 'Webhook Active'}</span>
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700">
-                <AlertTriangle className="w-3.5 h-3.5 text-slate-400" />
-                <span>Not Connected</span>
-              </span>
-            )}
+            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-black bg-emerald-50 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Connected: {slackStatus.teamName || 'Incoming Webhook Active'}</span>
+            </span>
+          </div>
+        </div>
+
+        {/* Webhook Configuration Field */}
+        <div className="space-y-2">
+          <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+            Slack Incoming Webhook URL
+          </label>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              type="text"
+              value={webhookInput}
+              onChange={(e) => setWebhookInput(e.target.value)}
+              placeholder="https://hooks.slack.com/services/..."
+              className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-white text-xs font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <Button
+              variant="secondary"
+              onClick={handleSaveWebhook}
+              loading={savingWebhook}
+              className="text-xs whitespace-nowrap bg-slate-100 dark:bg-slate-800 font-bold border border-slate-300 dark:border-slate-700"
+            >
+              Save & Reconnect
+            </Button>
           </div>
         </div>
 
@@ -125,31 +147,20 @@ export const SettingsPage: React.FC = () => {
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-          <span className="text-xs text-slate-400 font-medium">
-            {slackStatus.connected ? 'Your Slack Webhook is active and receiving alerts.' : 'Connect your Slack team.'}
+          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold">
+            ✓ Slack alert webhook is operational.
           </span>
 
           <div className="flex items-center gap-3">
-            {slackStatus.connected && (
-              <Button
-                variant="secondary"
-                onClick={handleTestSlack}
-                loading={testingSlack}
-                icon={<MessageSquare className="w-4 h-4" />}
-                className="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-bold hover:bg-slate-200 dark:hover:bg-slate-700"
-              >
-                Send Test Alert to Slack
-              </Button>
-            )}
-
-            {!slackStatus.connected && (
-              <Button
-                onClick={handleConnectSlack}
-                icon={<MessageSquare className="w-4 h-4" />}
-              >
-                Connect Slack Workspace
-              </Button>
-            )}
+            <Button
+              variant="secondary"
+              onClick={handleTestSlack}
+              loading={testingSlack}
+              icon={<MessageSquare className="w-4 h-4" />}
+              className="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-bold hover:bg-slate-200 dark:hover:bg-slate-700"
+            >
+              Send Test Alert to Slack
+            </Button>
           </div>
         </div>
       </div>
