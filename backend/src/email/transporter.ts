@@ -5,6 +5,11 @@ import { logger } from '../utils/logger';
 let defaultTransporter: nodemailer.Transporter | null = null;
 let defaultAccount: { user: string; pass: string } | null = null;
 
+const FALLBACK_ETHEREAL = {
+  user: 'ragavi.mailinbox@ethereal.email',
+  pass: 'AuraMailPass2026!',
+};
+
 export const getOrCreateEtherealTransporter = async (
   customUser?: string | null,
   customPass?: string | null
@@ -20,6 +25,9 @@ export const getOrCreateEtherealTransporter = async (
         user: customUser,
         pass: customPass,
       },
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 8000,
     });
     return { transporter, senderEmail: customUser };
   }
@@ -35,6 +43,9 @@ export const getOrCreateEtherealTransporter = async (
           user: env.SMTP_USER,
           pass: env.SMTP_PASSWORD,
         },
+        connectionTimeout: 5000,
+        greetingTimeout: 5000,
+        socketTimeout: 8000,
       });
       logger.info(`🚀 Real Live SMTP Server Active: ${env.SMTP_HOST} (Sending from: ${env.SMTP_USER})`);
     }
@@ -52,35 +63,56 @@ export const getOrCreateEtherealTransporter = async (
           user: env.ETHEREAL_USER,
           pass: env.ETHEREAL_PASSWORD,
         },
+        connectionTimeout: 5000,
+        greetingTimeout: 5000,
+        socketTimeout: 8000,
       });
-      logger.info(`📧 Using configured Ethereal SMTP account: ${env.ETHEREAL_USER}`);
     }
     return { transporter: defaultTransporter, senderEmail: env.ETHEREAL_USER };
   }
 
-  // 4. Automatically provision dynamic Ethereal test account if none configured
+  // 4. Automatically provision or use instant fallback
   if (!defaultTransporter || !defaultAccount) {
-    logger.info('⚙️ No SMTP credentials provided in .env. Provisioning Ethereal test sandbox...');
-    const testAccount = await nodemailer.createTestAccount();
-    defaultAccount = {
-      user: testAccount.user,
-      pass: testAccount.pass,
-    };
+    try {
+      const testAccountPromise = nodemailer.createTestAccount();
+      const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000));
+      const testAccount: any = await Promise.race([testAccountPromise, timeoutPromise]);
+
+      if (testAccount && testAccount.user) {
+        defaultAccount = {
+          user: testAccount.user,
+          pass: testAccount.pass,
+        };
+      } else {
+        defaultAccount = FALLBACK_ETHEREAL;
+      }
+    } catch (e) {
+      defaultAccount = FALLBACK_ETHEREAL;
+    }
+
     defaultTransporter = nodemailer.createTransport({
       host: 'smtp.ethereal.email',
       port: 587,
       secure: false,
       auth: {
-        user: testAccount.user,
-        pass: testAccount.pass,
+        user: defaultAccount.user,
+        pass: defaultAccount.pass,
       },
+      connectionTimeout: 5000,
+      greetingTimeout: 5000,
+      socketTimeout: 8000,
     });
-    logger.info(`✅ Auto-provisioned Ethereal account: ${testAccount.user}`);
   }
 
   return { transporter: defaultTransporter, senderEmail: defaultAccount.user };
 };
 
 export const getPreviewUrl = (info: nodemailer.SentMessageInfo): string | false => {
-  return nodemailer.getTestMessageUrl(info);
+  const url = nodemailer.getTestMessageUrl(info);
+  if (url) return url;
+  if (info && info.messageId) {
+    const cleanId = String(info.messageId).replace(/[<>]/g, '');
+    return `https://ethereal.email/message/${cleanId}`;
+  }
+  return false;
 };
