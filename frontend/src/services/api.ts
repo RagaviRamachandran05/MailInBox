@@ -22,8 +22,9 @@ export const api = axios.create({
 // Attach stored token if available (for cross-origin/dev fallback)
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('auramail_token');
-  if (token && !config.headers.Authorization) {
+  if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+    config.headers['x-auth-token'] = token;
   }
   return config;
 });
