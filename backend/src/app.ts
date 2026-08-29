@@ -58,22 +58,38 @@ app.get('/api/health', (req, res) => {
 // Mount Bull Board live monitoring dashboard
 app.use('/admin/queues', bullBoardRouter);
 
+import fs from 'fs';
+
 // Mount API Routes
 app.use('/api', apiRouter);
 
-// Serve frontend build in production
-const frontendDist = path.join(__dirname, '../../frontend/dist');
-app.use(express.static(frontendDist));
+// Robust static frontend serving across all deployment environments
+const candidatePaths = [
+  path.join(__dirname, 'public'),
+  path.join(__dirname, '../public'),
+  path.join(__dirname, '../../frontend/dist'),
+  path.join(process.cwd(), 'frontend/dist'),
+  path.join(process.cwd(), 'dist'),
+  path.join(process.cwd(), '../frontend/dist'),
+];
 
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api') || req.path.startsWith('/admin')) {
-    return next();
+let frontendDist: string | null = null;
+for (const p of candidatePaths) {
+  if (fs.existsSync(p) && fs.existsSync(path.join(p, 'index.html'))) {
+    frontendDist = p;
+    break;
   }
-  const indexPath = path.join(frontendDist, 'index.html');
-  res.sendFile(indexPath, (err) => {
-    if (err) next();
+}
+
+if (frontendDist) {
+  app.use(express.static(frontendDist));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api') || req.path.startsWith('/admin')) {
+      return next();
+    }
+    res.sendFile(path.join(frontendDist!, 'index.html'));
   });
-});
+}
 
 // Centralized error handling
 app.use(errorHandler);
