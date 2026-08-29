@@ -1,0 +1,14 @@
+email,name,company
+sarah.connor@cyberdyne.io,Sarah Connor,Cyberdyne Systems
+john.wick@continental.org,John Wick,The Continental
+tony.stark@starkindustries.com,Tony Stark,Stark Industries
+bruce.wayne@wayneenterprises.com,Bruce Wayne,Wayne Enterprises
+peter.parker@dailybugle.com,Peter Parker,Daily Bugle
+invalid-email-address-here,Bad Format,Test Invalid
+clark.kent@dailyplanet.com,Clark Kent,Daily Planet
+diana.prince@themyscira.gov,Diana Prince,Themyscira Embassy
+natasha.romanoff@avengers.org,Natasha Romanoff,Avengers Initiative
+steve.rogers@shield.gov,Steve Rogers,SHIELD
+missing-domain@,Faulty Lead,Faulty Inc
+wanda.maximoff@westview.net,Wanda Maximoff,Westview
+tony.stark@starkindustries.com,Tony Stark Duplicate,Stark Industries

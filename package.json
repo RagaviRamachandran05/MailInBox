@@ -1,0 +1,28 @@
+{
+  "name": "email-scheduler-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Production-grade Full-Stack Email Scheduler with BullMQ, Redis distributed rate limiter, MySQL, Elasticsearch, and React",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=frontend\"",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:worker": "npm run worker --workspace=backend",
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "build": "npm run build --workspace=backend && npm run build --workspace=frontend",
+    "test": "npm run test --workspace=backend",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f",
+    "docker:full": "docker compose --profile full up --build",
+    "prisma:generate": "npm run prisma:generate --workspace=backend",
+    "prisma:push": "npm run prisma:push --workspace=backend",
+    "prisma:studio": "npm run prisma:studio --workspace=backend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
