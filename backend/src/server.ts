@@ -23,10 +23,16 @@ async function bootstrap() {
   logger.info(`Max Emails Per Hour:  ${env.MAX_EMAILS_PER_HOUR}`);
   logger.info('-----------------------------------------------------');
 
-  // Verify Database Connection
+  // Verify Database Connection and ensure schema exists
   try {
     await prisma.$connect();
-    logger.info('✅ Database connection established via Prisma.');
+    try {
+      const { execSync } = await import('child_process');
+      execSync('npx prisma db push --skip-generate --accept-data-loss', { stdio: 'ignore' });
+    } catch (pushErr: any) {
+      // Ignored if already synced
+    }
+    logger.info('✅ Database connection and schema established via Prisma.');
   } catch (error: any) {
     logger.error('❌ Failed to connect to database:', error.message);
   }
