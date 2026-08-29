@@ -18,18 +18,14 @@ app.use(helmet({
 }));
 
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin, localhost, vercel.app, or configured FRONTEND_URL
-    if (!origin || origin.includes('localhost') || origin.includes('127.0.0.1') || origin.includes('vercel.app') || origin === env.FRONTEND_URL) {
-      callback(null, true);
-    } else {
-      callback(null, true);
-    }
-  },
+  origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-auth-token', 'Accept', 'Origin'],
+  exposedHeaders: ['Set-Cookie', 'Authorization', 'x-auth-token'],
 }));
+
+app.options('*', cors({ origin: true, credentials: true }));
 
 app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));

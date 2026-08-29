@@ -11,8 +11,8 @@ const createSenderSchema = z.object({
   email: z.string().email('Valid sender email is required'),
   etherealUser: z.string().optional(),
   etherealPassword: z.string().optional(),
-  hourlyLimit: z.number().int().positive('Hourly limit must be positive').optional(),
-  isDefault: z.boolean().optional(),
+  hourlyLimit: z.union([z.string(), z.number()]).transform(Number).optional(),
+  isDefault: z.union([z.boolean(), z.string()]).transform((val) => val === true || val === 'true').optional(),
 });
 
 router.use(requireAuth);

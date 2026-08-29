@@ -13,9 +13,9 @@ const scheduleEmailSchema = z.object({
   startTime: z.string().refine((val) => !isNaN(Date.parse(val)), {
     message: 'Invalid ISO start time format',
   }),
-  delayBetweenEmails: z.number().int().positive('Delay must be a positive integer').optional(),
-  hourlyLimit: z.number().int().positive('Hourly limit must be a positive integer').optional(),
-  senderId: z.string().uuid().optional(),
+  delayBetweenEmails: z.union([z.string(), z.number()]).transform(Number).optional(),
+  hourlyLimit: z.union([z.string(), z.number()]).transform(Number).optional(),
+  senderId: z.string().optional(),
 });
 
 const paginationSchema = z.object({
