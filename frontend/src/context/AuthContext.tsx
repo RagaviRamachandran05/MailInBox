@@ -58,7 +58,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const loginWithGoogle = () => {
-    window.location.href = '/api/auth/google';
+    const backendUrl = import.meta.env.VITE_API_URL 
+      ? (import.meta.env.VITE_API_URL.endsWith('/api') ? import.meta.env.VITE_API_URL.replace(/\/api$/, '') : import.meta.env.VITE_API_URL)
+      : '';
+    window.location.href = `${backendUrl}/api/auth/google`;
   };
 
   const loginWithGoogleCredential = async (credential: string) => {
