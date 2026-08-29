@@ -5,14 +5,14 @@ dotenv.config();
 
 const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  PORT: z.string().default('5000').transform(val => parseInt(val, 10)),
+  PORT: z.union([z.string(), z.number()]).default(10000).transform(val => Number(val)),
   FRONTEND_URL: z.string().default('http://localhost:5173'),
   SESSION_SECRET: z.string().default('super_secure_jwt_session_secret_reachinbox_2026_x991'),
   
   DATABASE_URL: z.string().default('file:./dev.db'),
   
   REDIS_HOST: z.string().default('localhost'),
-  REDIS_PORT: z.string().default('6379').transform(val => parseInt(val, 10)),
+  REDIS_PORT: z.union([z.string(), z.number()]).default(6379).transform(val => Number(val)),
   REDIS_PASSWORD: z.string().optional().default(''),
   
   ELASTICSEARCH_URL: z.string().default('http://localhost:9200'),
@@ -31,14 +31,14 @@ const envSchema = z.object({
   
   // Real Live SMTP Configuration (Optional - for sending to real Gmail/Outlook inboxes)
   SMTP_HOST: z.string().optional().default(''),
-  SMTP_PORT: z.string().default('587').transform(val => parseInt(val, 10)),
-  SMTP_SECURE: z.string().default('false').transform(val => val === 'true'),
+  SMTP_PORT: z.union([z.string(), z.number()]).default(587).transform(val => Number(val)),
+  SMTP_SECURE: z.union([z.string(), z.boolean()]).default(false).transform(val => val === true || val === 'true'),
   SMTP_USER: z.string().optional().default(''),
   SMTP_PASSWORD: z.string().optional().default(''),
   
-  WORKER_CONCURRENCY: z.string().default('5').transform(val => parseInt(val, 10)),
-  MIN_EMAIL_DELAY_MS: z.string().default('2000').transform(val => parseInt(val, 10)),
-  MAX_EMAILS_PER_HOUR: z.string().default('200').transform(val => parseInt(val, 10)),
+  WORKER_CONCURRENCY: z.union([z.string(), z.number()]).default(5).transform(val => Number(val)),
+  MIN_EMAIL_DELAY_MS: z.union([z.string(), z.number()]).default(2000).transform(val => Number(val)),
+  MAX_EMAILS_PER_HOUR: z.union([z.string(), z.number()]).default(200).transform(val => Number(val)),
 });
 
 const parseEnv = () => {

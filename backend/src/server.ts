@@ -51,9 +51,10 @@ async function bootstrap() {
     logger.error('Failed to initialize integrated BullMQ worker:', workerErr);
   }
 
-  const server = app.listen(env.PORT, () => {
-    logger.info(`🎯 Server actively listening on http://localhost:${env.PORT}`);
-    logger.info(`📊 Bull Board Dashboard mounted at http://localhost:${env.PORT}/admin/queues`);
+  const effectivePort = process.env.PORT ? parseInt(process.env.PORT, 10) : env.PORT;
+  const server = app.listen(effectivePort, '0.0.0.0', () => {
+    logger.info(`🎯 Server actively listening on http://0.0.0.0:${effectivePort}`);
+    logger.info(`📊 Bull Board Dashboard mounted at http://0.0.0.0:${effectivePort}/admin/queues`);
     logger.info(`🌐 Frontend Expected at ${env.FRONTEND_URL}`);
   });
 
