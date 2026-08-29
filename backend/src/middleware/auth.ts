@@ -47,8 +47,16 @@ export const requireAuth = async (
     }
   }
 
-  // Graceful Fallback for Cross-Origin / Cloud deployments:
-  // Auto-resolve or create active workspace user so campaigns never fail with 401
+  if (!token) {
+    if (req.path === '/me' || req.originalUrl?.includes('/auth/me')) {
+      return res.status(401).json({
+        success: false,
+        message: 'Unauthorized: No active session token found.',
+        code: 'AUTH_UNAUTHORIZED',
+      });
+    }
+  }
+
   let defaultUser = await prisma.user.findFirst({
     where: { email: 'rragavi054@gmail.com' },
   });
